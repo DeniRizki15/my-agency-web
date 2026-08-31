@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agency-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: agency-web
+  template:
+    metadata:
+      labels:
+        app: agency-web
+    spec:
+      containers:
+      - name: web
+        image: agency-web:v1
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agency-service
+spec:
+  type: NodePort
+  selector:
+    app: agency-web
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30095
