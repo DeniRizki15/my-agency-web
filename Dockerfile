@@ -4,6 +4,6 @@ FROM nginx:alpine
 RUN rm -rf /usr/share/nginx/html/*
 
 # Salin seluruh isi direktori website ke folder Nginx
-COPY . /usr/share/nginx/html
+COPY . /usr/share/nginx/html/
 
 EXPOSE 80
