@@ -8,23 +8,30 @@ pipeline {
                 checkout scm
             }
         }
+
         stage('Build Docker Image') {
             steps {
-                echo 'Membuat Docker Image berisi HTML/CSS/JS...'
-                // Membangun image agency-web:v1 langsung di lingkungan Minikube/Docker
-                sh 'docker build -t agency-web:v1 .'
+                echo 'Membuat Docker Image versi baru...'
+                // Menggunakan BUILD_NUMBER Jenkins sebagai tag unik (contoh: agency-web:build-5)
+                sh 'docker build -t agency-web:build-${BUILD_NUMBER} .'
             }
         }
+
+        stage('Load Image to Minikube') {
+            steps {
+                echo 'Memasukkan Docker Image ke dalam Minikube...'
+                // Otomatis memasukkan image yang baru di-build ke cluster Minikube
+                sh 'minikube image load agency-web:build-${BUILD_NUMBER}'
+            }
+        }
+
         stage('Deploy to Minikube') {
             steps {
-                echo 'Menjalankan deployment ke Kubernetes...'
+                echo 'Melakukan deployment & perbaruan Pods di Minikube...'
+                // Apply manifest k8s
                 sh 'kubectl apply -f k8s.yaml'
-            }
-        }
-        stage('Verify Deployment') {
-            steps {
-                sh 'kubectl get pods -l app=agency-web'
-                sh 'kubectl get svc agency-service'
+                // Otomatis memperbarui deployment agar menggunakan tag image terbaru
+                sh 'kubectl set image deployment/agency-web web=agency-web:build-${BUILD_NUMBER}'
             }
         }
     }
